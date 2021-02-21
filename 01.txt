@@ -1,0 +1,30 @@
+#include <stdio.h>
+
+int main() {
+    int l,c;//line, column
+    scanf("%d%d",&l,&c);
+    int a[l][c],b[l][c], p=0, max=-21474836486, same=0;
+    for(int i=0;i<l;i++){
+        for (int j = 0; j < c; j++) {
+            scanf("%d",&a[i][j]);
+        }
+    }
+
+    for(int i=0;i<l;i++){
+        for (int j = 0; j < c; j++) {
+        max=a[i][j];
+            for (int k = i; k < l; k++) {
+                for (int m = j-p<0 ? 0 :j-p ; m < j+p<c? j+p: c ; ++m) {
+
+                }
+            }
+            if (a[i][j]>max){
+                max=a[i][j];
+            }
+        }
+        p++;
+
+
+    }
+
+    }
