@@ -14,14 +14,14 @@ int main() {
     for (int i = l - 2; i >= 0; i--) {
         for (int j = c - 1; j >= 0; j--) {
             max = a[i][j];
-            left = a[i + 1][j - 1];
             mid = a[i + 1][j];
-            right = a[i + 1][j + 1];
-            if (max < left) {
+            if ((max < a[i + 1][j - 1]) && (j > 0)) {
+                left = a[i + 1][j - 1];
                 max = left;}
             if (max < mid) {
                 max = mid;}
-            if (max < right) {
+            if ((max < a[i + 1][j + 1]) && (j < c)) {
+                right = a[i + 1][j + 1];
                 max = right;}
 
             same += (a[i][j] == max);
