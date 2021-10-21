@@ -19,32 +19,33 @@ using namespace std;
 //    return copy(dst + myStrlen(dst), src);
 //}
 
-int find_subs(char *string, const char *substring, int len,
-              long int sub_len,
-              int i) { //находит подстроку в строке и возвращает указатель на её начало, поиск идёт с i элемента
-    for (i; i < len; i++)
-        if (string[i] == substring[0]) {
-            int j = 0;
-            for (; j < sub_len; j++)
-                if (string[i + j] != substring[j])
-                    break;
-            if (j == sub_len) {
-                return i;
-            }
-        }
-    return -1;
-}
+
 
 class String {
 
-    long int len;
+    int len;
     char *string;
+
+    int find_subs(char *string, const char *substring, int len,
+                  long int sub_len,
+                  int i) { //находит подстроку в строке и возвращает указатель на её начало, поиск идёт с i элемента
+        for (i; i < len; i++)
+            if (string[i] == substring[0]) {
+                int j = 0;
+                for (; j < sub_len; j++)
+                    if (string[i + j] != substring[j])
+                        break;
+                if (j == sub_len) {
+                    return i;
+                }
+            }
+        return -1;
+    }
+
 public:
     String(int l, char *s) : len(l), string(s) {}
 
-    String() {
-        len = 0;
-        string = nullptr;
+    String() : len(0), string(nullptr) {
     }
 
     String(char b) {
@@ -68,7 +69,7 @@ public:
 
     String &operator=(const String &inst) {
         if (this == &inst)
-            throw;
+            return *this;
         delete[] string;
         len = inst.len;
         string = new char[len + 1];
@@ -76,9 +77,13 @@ public:
         return *this;
     }
 
-    String& operator+=(const String &string1) {
+    String &operator+=(const String &string1) {
         len = len + string1.len + 1;
-        strcat(string, string1.string);
+        char* temp = string;
+        delete[] string;
+        string = new char[len];
+        strcat(temp, string1.string);
+        this->string = temp;
         return *this;
     }
 
@@ -130,10 +135,33 @@ public:
         return string;
     }
 
+    char* my_getline() {
+        char *str = new char[1];
+        str[0] = 0;
+        char ch;
+        char *buf;
+        int length;
+
+        while (ch = cin.get()) {
+            if (ch == '\n') break;
+
+            length = strlen(str);
+            buf = new char[length + 2];
+            strcpy(buf, str);
+            buf[length] = ch;
+            buf[length + 1] = 0;
+            delete[]str;
+            str = buf;
+
+        }
+        return str;
+    }
+
     friend istream &operator>>(istream &stream, String &instance) {
         delete[] instance.string;
-        char *temp = new char[4097];
-        stream.getline(temp, 4096, '\n');
+        char *temp = instance.my_getline();
+//        stream.getline(temp, 4096, '\n');
+//        fgets(temp,126);
         instance.len = strlen(temp);
         instance.string = new char[instance.len + 1];
         strncpy(instance.string, temp, instance.len + 1);
@@ -186,9 +214,12 @@ public:
 };
 
 String operator+(const String &string1, const String &string2) {
-    auto *string3 = new String(string1);
+    String *string3 = new String(string1);
     *string3 += string2;
-    return (*string3);
+    String temp;
+    temp = *string3;
+    delete string3;
+    return (temp);
 }
 
 int main() {
