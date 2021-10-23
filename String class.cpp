@@ -214,11 +214,8 @@ public:
 };
 
 String operator+(const String &string1, const String &string2) {
-    String *string3 = new String(string1);
-    *string3 += string2;
-    String temp;
-    temp = *string3;
-    delete string3;
+    String temp = string1;
+    temp += string2;
     return (temp);
 }
 
