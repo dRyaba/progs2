@@ -1,5 +1,5 @@
 #include <iostream>
-#include <cstring>
+#include <cctype>
 
 using namespace std;
 
@@ -12,6 +12,8 @@ public:
     virtual int eval(const string &varVal) = 0;
 
     virtual Expression *copy() = 0;
+
+    virtual ~Expression() {};
 
 };
 
@@ -37,7 +39,7 @@ public:
     }
 };
 
-class Variable : protected Expression {
+class Variable : public Expression {
     string var;
 public:
     Variable(string var) : var(var) {}
@@ -58,9 +60,17 @@ public:
                     if (varVal[i + j] != var[j])
                         break;
                 if (j == var.size()) {
-//                    return i;
+                    int k = 0;
+                    int res = 0;
+                    while (varVal[j + k] != '\0' || varVal[j + k] != ';') {
+                        res *= 10;
+                        res += varVal[j + k] - '0';
+                        k++;
+                    }
+                    return res;
                 }
             }
+        return 0;
     }
 
     void print() {
@@ -89,11 +99,15 @@ public:
     void print() {
         cout << '(';
         a->print();
-        cout << " + ";
+        cout << "+";
         b->print();
         cout << ')';
     }
 
+    ~Add() {
+        delete a;
+        delete b;
+    }
 };
 
 class Sub : public Expression { ;
@@ -117,9 +131,14 @@ public:
     void print() {
         cout << '(';
         a->print();
-        cout << " - ";
+        cout << "-";
         b->print();
         cout << ')';
+    }
+
+    ~Sub() {
+        delete a;
+        delete b;
     }
 };
 
@@ -144,9 +163,14 @@ public:
     void print() {
         cout << '(';
         a->print();
-        cout << " * ";
+        cout << "*";
         b->print();
         cout << ')';
+    }
+
+    ~Mul() {
+        delete a;
+        delete b;
     }
 };
 
@@ -176,8 +200,64 @@ public:
         b->print();
         cout << ')';
     }
+
+    ~Div() {
+        delete a;
+        delete b;
+    }
 };
 
-int main() {
+Expression *parse(const string &exp, int start, int *i) {
+    if (exp[start] == '(') {
+        (*i)++;
+        Expression *first = parse(exp, start + 1, i);
+        char sign = exp[*i];
+        (*i)++;
+        Expression *second = parse(exp, *i, i);
+        (*i)++;
+        switch (sign) {
+            case '+':
+                return new Add(first, second);
+            case '-':
+                return new Sub(first, second);
+            case '*':
+                return new Mul(first, second);
+            case '/':
+                return new Div(first, second);
+            default:
+                return nullptr;
+        }
+    } else {
+        if (isdigit(exp[start])) {
+            int digLen = 0;
+            int res = 0;
+            while (isdigit(exp[start + digLen])) {
+                res *= 10;
+                res += exp[start + digLen] - '0';
+                digLen++;
+            }
+            *i += digLen;
+            return new Number(res);
+        }
+        if (isalpha(exp[start])) {
+            int varLen = 0;
+            string res = "";
+            while (isalpha(exp[*i + varLen])) {
+                res += exp[*i + varLen];
+                varLen++;
+            }
+            *i += varLen;
+            return new Variable(res);
+        }
+        return nullptr;
+    }
+}
 
+int main() {
+    string expression;
+    cin >> expression;
+    int i = 0;
+    Expression *e = parse(expression, 0, &i);
+    Expression *b= e->derivative("first");
+    b->print();
 }
