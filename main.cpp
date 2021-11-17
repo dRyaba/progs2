@@ -65,11 +65,10 @@ public:
             temp[i - 1] = elements[i];
         delete[] elements;
         --size;
-        elements = new T[size];
-//        elements = temp;
-        for (int i = 0; i < size; i++)
-            elements[i] = temp[i];
-        delete[] temp;
+        elements = temp;
+//        for (int i = 0; i < size; i++)
+//            elements[i] = temp[i];
+//        delete[] temp;
     }
 
     T &operator[](int r) {
@@ -106,10 +105,7 @@ public:
         for (int i = 0; i < size; i++)
             temp[(i + t) % size] = elements[i];
         delete[] elements;
-        elements = new T[size];
-        for (int i = 0; i < size; i++)
-            elements[i] = temp[i];
-        delete[] temp;
+        elements = temp;
     }
 
     void rsh(int r) {
@@ -137,56 +133,39 @@ void execute() {
     Vector<T> v;
     int n;
     cin >> n;
-    for (int i = 0; i < n; i++) {
-        string c;
-        cin >> c;
-        T value;
-        int index;
-        if (c == "ADD") {
-            cin >> value;
-            v.add(value);
-        }
-        if (c == "REMOVE") {
-            cin >> index;
-            try { v.remove(index); }
-            catch (...) {
-                cout << "ERROR";
-                exit(0);
+    try {
+        for (int i = 0; i < n; i++) {
+            string c;
+            cin >> c;
+            T value;
+            int index;
+            if (c == "ADD") {
+                cin >> value;
+                v.add(value);
+            } else if (c == "REMOVE") {
+                cin >> index;
+                v.remove(index);
+            } else if (c == "PRINT") {
+                cin >> index;
+                v.print(index);
+            } else if (c == "UPDATE") {
+                cin >> index >> value;
+                v[index] = value;
+            } else {
+                int shift;
+                if (c == "LSH") {
+                    cin >> shift;
+                    v.lsh(shift);
+                } else if (c == "RSH") {
+                    cin >> shift;
+                    v.rsh(shift);
+                }
             }
         }
-        if (c == "PRINT") {
-            cin >> index;
-            try { v.print(index); }
-            catch (...) {
-                cout << "ERROR";
-                exit(0);
-            }
-        }
-        if (c == "UPDATE") {
-            cin >> index >> value;
-            try { v[index] = value; }
-            catch (...) {
-                cout << "ERROR";
-                exit(0);
-            }
-        }
-        int shift;
-        if (c == "LSH") {
-            cin >> shift;
-            try { v.lsh(shift); }
-            catch (...) {
-                cout << "ERROR";
-                exit(0);
-            }
-        }
-        if (c == "RSH") {
-            cin >> shift;
-            try { v.rsh(shift); }
-            catch (...) {
-                cout << "ERROR";
-                exit(0);
-            }
-        }
+    }
+    catch (...) {
+        cout << "ERROR";
+        return;
     }
     v.printAll();
 }
