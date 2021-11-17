@@ -1,7 +1,8 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
-bool flag = false;
+#include <cstdlib>
+#include <stdexcept>
 
 using namespace std;
 
@@ -9,19 +10,18 @@ template<typename T>
 class Vector {
     int size;
     T *elements;
+    int alloc_mem;
 
     void Copy(const Vector &vector) {
         size = vector.size;
+        alloc_mem = vector.alloc_mem;
         elements = new T[size];
         for (int i = 0; i < size; i++)
             elements[i] = vector.elements[i];
     }
 
 public:
-    Vector() {
-        size = 0;
-        elements = nullptr;
-    }
+    Vector() : size(0), elements(new T[1]), alloc_mem(1) {}
 
     Vector(const Vector &vector) {
         Copy(vector);
@@ -40,23 +40,23 @@ public:
     }
 
     void add(T element) {
-        T *temp = new T[size + 1];
-        for (int i = 0; i < size; i++) {
-            temp[i] = elements[i];
+        if (size + 1 > alloc_mem) {
+//            alloc_mem > 0 ? alloc_mem *= 2 : alloc_mem = 1;
+            alloc_mem *= 2;
+            T *temp = new T[alloc_mem];
+            for (int i = 0; i < size; i++) {
+                temp[i] = elements[i];
+            }
+            delete[] elements;
+            elements = temp;
         }
-        temp[size] = element;
-        delete[] elements;
+        elements[size] = element;
         ++size;
-        elements = new T[size];
-        for (int i = 0; i < size; i++)
-            elements[i] = temp[i];
-        delete[] temp;
     }
 
     void remove(int index) {
         if (index < 0 || index >= size) {
-            flag = true;
-            return;
+            throw runtime_error("ERROR");
         }
         T *temp = new T[size - 1];
         for (int i = 0; i < index; i++)
@@ -74,32 +74,30 @@ public:
 
     T &operator[](int r) {
         if (r < 0 || r >= size) {
-            flag = true;
-            return T();
+            throw runtime_error("ERROR");
+//            cout<<"ERROR";
+//            exit(0);
         }
         return elements[r];
     }
 
     void print(int index) {
         if (index < 0 || index >= size) {
-            flag = true;
-            return;
+            throw runtime_error("ERROR");
         }
         cout << elements[index] << endl;
     }
 
-    void update(int index, T value) {
-        if (index < 0 || index >= size) {
-            flag = true;
-            return;
-        }
-        elements[index] = value;
-    }
+//    void update(int index, T value) {
+//        if (index < 0 || index >= size) {
+//            throw runtime_error("ERROR");
+//        }
+//        elements[index] = value;
+//    }
 
     void lsh(int r) {
         if (!size) {
-            flag = true;
-            return;
+            throw runtime_error("ERROR");
         }
         int t = size - (r % size);
         if (!t)
@@ -116,8 +114,7 @@ public:
 
     void rsh(int r) {
         if (!size) {
-            flag = true;
-            return;
+            throw runtime_error("ERROR");
         }
         int t = r % size;
         if (!t)
@@ -126,10 +123,7 @@ public:
         for (int i = 0; i < size; i++)
             temp[(i + t) % size] = elements[i];
         delete[] elements;
-        elements = new T[size];
-        for (int i = 0; i < size; i++)
-            elements[i] = temp[i];
-        delete[] temp;
+        elements = temp;
     }
 
     void printAll() {
@@ -154,28 +148,44 @@ void execute() {
         }
         if (c == "REMOVE") {
             cin >> index;
-            v.remove(index);
+            try { v.remove(index); }
+            catch (...) {
+                cout << "ERROR";
+                exit(0);
+            }
         }
         if (c == "PRINT") {
             cin >> index;
-            v.print(index);
+            try { v.print(index); }
+            catch (...) {
+                cout << "ERROR";
+                exit(0);
+            }
         }
         if (c == "UPDATE") {
             cin >> index >> value;
-            v.update(index, value);
+            try { v[index] = value; }
+            catch (...) {
+                cout << "ERROR";
+                exit(0);
+            }
         }
         int shift;
         if (c == "LSH") {
             cin >> shift;
-            v.lsh(shift);
+            try { v.lsh(shift); }
+            catch (...) {
+                cout << "ERROR";
+                exit(0);
+            }
         }
         if (c == "RSH") {
             cin >> shift;
-            v.rsh(shift);
-        }
-        if (flag) {
-            cout << "ERROR";
-            break;
+            try { v.rsh(shift); }
+            catch (...) {
+                cout << "ERROR";
+                exit(0);
+            }
         }
     }
     v.printAll();
@@ -186,7 +196,7 @@ int main() {
     cin >> t;
     if (t == 'I') execute<int>();
     if (t == 'D') {
-        cout<<setprecision(2)<<fixed;
+        cout << setprecision(2) << fixed;
         execute<double>();
     }
     if (t == 'S') execute<string>();
