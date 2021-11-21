@@ -21,10 +21,14 @@ class Vector {
     }
 
 public:
-    Vector() : size(0), elements(new T[1]), alloc_mem(1) {}
+    Vector() : size(0), elements(new T[1]), alloc_mem(0) {}
 
     Vector(const Vector &vector) {
         Copy(vector);
+    }
+
+    int getSize() {
+        return size;
     }
 
     Vector &operator=(const Vector &vector) {
@@ -41,8 +45,8 @@ public:
 
     void add(T element) {
         if (size + 1 > alloc_mem) {
-//            alloc_mem > 0 ? alloc_mem *= 2 : alloc_mem = 1;
-            alloc_mem *= 2;
+            alloc_mem > 0 ? alloc_mem *= 2 : alloc_mem = 1;
+//            alloc_mem *= 2;
             T *temp = new T[alloc_mem];
             for (int i = 0; i < size; i++) {
                 temp[i] = elements[i];
@@ -56,7 +60,7 @@ public:
 
     void remove(int index) {
         if (index < 0 || index >= size) {
-            throw runtime_error("ERROR");
+            throw index;
         }
         T *temp = new T[size - 1];
         for (int i = 0; i < index; i++)
@@ -73,7 +77,7 @@ public:
 
     T &operator[](int r) {
         if (r < 0 || r >= size) {
-            throw runtime_error("ERROR");
+            throw r;
 //            cout<<"ERROR";
 //            exit(0);
         }
@@ -82,7 +86,7 @@ public:
 
     void print(int index) {
         if (index < 0 || index >= size) {
-            throw runtime_error("ERROR");
+            throw index;
         }
         cout << elements[index] << endl;
     }
@@ -96,7 +100,7 @@ public:
 
     void lsh(int r) {
         if (!size) {
-            throw runtime_error("ERROR");
+            throw runtime_error("Size - 0: shift can't be made");
         }
         int t = size - (r % size);
         if (!t)
@@ -110,7 +114,7 @@ public:
 
     void rsh(int r) {
         if (!size) {
-            throw runtime_error("ERROR");
+            throw runtime_error("Size - 0: shift can't be made");
         }
         int t = r % size;
         if (!t)
@@ -163,8 +167,12 @@ void execute() {
             }
         }
     }
-    catch (...) {
-        cout << "ERROR";
+    catch (int index) {
+        cout << "index out of bounce: index - " << index << " min index - 0; max index - " << v.getSize() - 1 << endl;
+        return;
+    }
+    catch (const char *size_error) {
+        cout << size_error;
         return;
     }
     v.printAll();
@@ -180,3 +188,10 @@ int main() {
     }
     if (t == 'S') execute<string>();
 }
+//S
+//5
+//ADD Ivanov
+//ADD Petrova
+//ADD Sidorov
+//REMOVE 3
+//LSH 1
