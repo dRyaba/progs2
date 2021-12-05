@@ -118,7 +118,7 @@ int resolve(queue<char> &pQueue) {
                     }
                     case '/': {
                         if (res == 0)
-                            throw -1;
+                            throw runtime_error("division can't be made because the denominator is 0");
                         res = curr / res;
                         break;
                     }
@@ -133,7 +133,7 @@ int resolve(queue<char> &pQueue) {
                 break;
             }
             default:
-                throw -1;
+                throw runtime_error("incorrect 'cur' type");
         }
         pQueue.pop();
     }
@@ -141,7 +141,7 @@ int resolve(queue<char> &pQueue) {
     if (workStack.size() == 1)
         return workStack.top();
     else
-        throw -1;
+        throw runtime_error("Stack won't be cleared. Possible memory leak");
 }
 
 int main() {
