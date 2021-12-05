@@ -9,7 +9,6 @@ ifstream in("input.txt");
 ofstream out("output.txt");
 
 class operationSet {
-private:
     map<char, int> priority;
     map<char, char> associativity;
 
