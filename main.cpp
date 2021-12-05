@@ -5,8 +5,6 @@
 
 using namespace std;
 
-ifstream in("input.txt");
-ofstream out("output.txt");
 
 class operationSet {
     map<char, int> priority;
@@ -22,8 +20,8 @@ public:
         return priority[sign];
     }
 
-    int assoc(char sign) {
-        return associativity[sign] == 'L' ? 1 : 0;
+    bool isLeftAssociative(char sign) {
+        return associativity[sign] == 'L';
     }
 };
 
@@ -38,12 +36,9 @@ char type(char c) {
     return 'r';
 }
 
-bool sortFacility(queue<char> &outQueue, operationSet &Op) {
+bool sortFacility(queue<char> &outQueue, operationSet &Op, const string& basicString) {
     stack<char> Stack;
     char sc;
-
-    string basicString;
-    in >> basicString;
 
     for (char i: basicString) {
 
@@ -51,15 +46,12 @@ bool sortFacility(queue<char> &outQueue, operationSet &Op) {
             case 's': {
                 while (!Stack.empty()) {
                     sc = Stack.top();
-
-                    if ((type(sc) == 's') && (
-                            ((Op.assoc(i)) && (Op.prior(i) <= Op.prior(sc))) ||
-                            ((!Op.assoc(i)) && (Op.prior(i) < Op.prior(sc))))) {
+                    if ((type(sc) == 's') && (((Op.isLeftAssociative(i)) && (Op.prior(i) <= Op.prior(sc))) ||
+                                              ((!Op.isLeftAssociative(i)) && (Op.prior(i) < Op.prior(sc))))) {
                         outQueue.push(sc);
                         Stack.pop();
                     } else
                         break;
-
                 }
                 Stack.push(i);
                 break;
@@ -157,12 +149,15 @@ int main() {
     int priority;
     queue<char> outQueue;
     operationSet set;
-
+    ifstream in("input.txt");
+    ofstream out("output.txt");
     for (int i = 0; i < 4; i++) {
         in >> sign >> priority >> side;
         set.insert(sign, priority, side);
     }
-    if (sortFacility(outQueue, set)) {
+    string basicString;
+    in >> basicString;
+    if (sortFacility(outQueue, set, basicString)) {
         try {
             out << resolve(outQueue);
         }
