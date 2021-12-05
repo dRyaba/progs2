@@ -38,7 +38,7 @@ char type(char c) {
     return 'r';
 }
 
-bool sortFacility(queue<char> *outQueue, operationSet *Op) {
+bool sortFacility(queue<char> &outQueue, operationSet &Op) {
     stack<char> Stack;
     char sc;
 
@@ -53,9 +53,9 @@ bool sortFacility(queue<char> *outQueue, operationSet *Op) {
                     sc = Stack.top();
 
                     if ((type(sc) == 's') && (
-                            ((Op->assoc(i)) && (Op->prior(i) <= Op->prior(sc))) ||
-                            ((!Op->assoc(i)) && (Op->prior(i) < Op->prior(sc))))) {
-                        outQueue->push(sc);
+                            ((Op.assoc(i)) && (Op.prior(i) <= Op.prior(sc))) ||
+                            ((!Op.assoc(i)) && (Op.prior(i) < Op.prior(sc))))) {
+                        outQueue.push(sc);
                         Stack.pop();
                     } else
                         break;
@@ -65,7 +65,7 @@ bool sortFacility(queue<char> *outQueue, operationSet *Op) {
                 break;
             }
             case 'd': {
-                outQueue->push(i);
+                outQueue.push(i);
                 break;
             }
             case 'l': {
@@ -78,7 +78,7 @@ bool sortFacility(queue<char> *outQueue, operationSet *Op) {
                     if (sc == '(')
                         break;
                     else {
-                        outQueue->push(sc);
+                        outQueue.push(sc);
                         Stack.pop();
                     }
                 }
@@ -91,19 +91,19 @@ bool sortFacility(queue<char> *outQueue, operationSet *Op) {
     }
 
     while (!Stack.empty()) {
-        outQueue->push(Stack.top());
+        outQueue.push(Stack.top());
         Stack.pop();
     }
     return true;
 }
 
-int resolve(queue<char> *pQueue) {
+int resolve(queue<char> &pQueue) {
     char cur;
     int res, curr;
     stack<int> workStack;
 
-    while (!pQueue->empty()) {
-        cur = pQueue->front();
+    while (!pQueue.empty()) {
+        cur = pQueue.front();
         switch (type(cur)) {
             case 's': {
                 res = workStack.top();
@@ -143,7 +143,7 @@ int resolve(queue<char> *pQueue) {
             default:
                 throw -1;
         }
-        pQueue->pop();
+        pQueue.pop();
     }
 
     if (workStack.size() == 1)
@@ -162,9 +162,9 @@ int main() {
         in >> sign >> priority >> side;
         set.insert(sign, priority, side);
     }
-    if (sortFacility(&outQueue, &set)) {
+    if (sortFacility(outQueue, set)) {
         try {
-            out << resolve(&outQueue);
+            out << resolve(outQueue);
         }
         catch (...) {
             out << "ERROR";
