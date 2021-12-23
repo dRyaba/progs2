@@ -11,7 +11,7 @@
 #include <ctime>
 #include <algorithm>
 
-#define ThreadsNumber 4
+#define ThreadsNumber 3
 using namespace std;
 
 mutex storageMutex;
@@ -25,24 +25,20 @@ int uniq = 0;
 
 void findURL() {
     while (true) {
-        unique_lock<mutex> Lock(storageMutex/*, defer_lock*/);
+        unique_lock<mutex> Lock(storageMutex);
         storageMutexCondVar.wait(Lock, []() -> bool { return !URLqueue.empty() || flag.load(); });
-
-        if (URLqueue.empty())
+        if (URLqueue.empty() && flag.load()) // новое условие
             break;
-        //Lock.lock();
         string URL = URLqueue.front();
         uniq++;
         URLqueue.pop();
         Lock.unlock();
 
         string content;
-        ifstream input(globalInput + URL);
-        getline(input, content);
-        input.close();
-
+        ifstream copyInput(globalInput + URL);
+        getline(copyInput, content);
+        copyInput.close();
         size_t start = 0;
-
         while (start != string::npos) {
             start = content.find("<a href=", start);
             if (start != string::npos) {
@@ -55,6 +51,7 @@ void findURL() {
                 if (::std::find(UniqueStorage.begin(), UniqueStorage.end(), URL) == UniqueStorage.end()) {
                     UniqueStorage.push_back(URL);
                     Lock.unlock();
+
                     ofstream output(globalOutput + URL);
                     ifstream input(globalInput + URL);
                     if (!output.is_open() || !input.is_open())
@@ -66,9 +63,7 @@ void findURL() {
                     output << temp;
                     output.close();
 
-//                    cout << URLqueue.size() << " " << URL << endl;
                     Lock.lock();
-//                    URLqueue.push(temp);
                     URLqueue.push(URL);
                     Lock.unlock();
 
@@ -81,9 +76,8 @@ void findURL() {
 
 int main() {
     clock_t start_time = clock();
-    ifstream in("input.txt");
-
     string st_adr, workString;
+    ifstream in("input.txt");
 
     in >> globalInput;
     in >> st_adr;
@@ -102,8 +96,16 @@ int main() {
     for (int i = 0; i < ThreadsNumber; i++)
         Threads.emplace_back(thread(findURL));
     storageMutexCondVar.notify_one();
-    while (!URLqueue.empty())
-        this_thread::sleep_for(chrono::milliseconds(1));
+    while (true) { // новое условие
+        storageMutex.lock();
+        if (!URLqueue.empty()) {
+            storageMutex.unlock();
+            break;
+        } else {
+            storageMutex.unlock();
+            this_thread::sleep_for(chrono::milliseconds(1));
+        }
+    }
 
     flag.store(true);
     for (int i = 0; i < ThreadsNumber; i++) {
@@ -114,12 +116,12 @@ int main() {
         Threads[i].join();
 
     clock_t end_time = clock();
-    cout << "Successfully ended. time spent: " << (end_time - start_time) / 1000.00 << " seconds. uniq: "
+    cout << "Successfully ended. time spent: " << (end_time - start_time) / 1000.0000 << " seconds. uniq: "
          << uniq;
-//    to save results of running programm with different amount of threads
-//    ofstream resout(R"(C:\Users\User\CLionProjects\5.1.1\cmake-build-debug\Results.txt)", ofstream::app);
-//    resout << "Threads: " << ThreadsNumber << " time spent: " << (end_time - start_time) / 1000.00
-//           << " seconds. uniq elements: "
-//           << uniq << endl;
-//    resout.close();
+//    to save results of running program with different amount of threads
+    ofstream resout(R"(C:\Users\User\CLionProjects\5.1.1\cmake-build-debug\Results.txt)", ofstream::app);
+    resout << "Threads: " << ThreadsNumber << " time spent: " << (end_time - start_time) / 1000.00
+           << " seconds. uniq elements: "
+           << uniq << endl;
+    resout.close();
 }
