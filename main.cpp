@@ -42,9 +42,9 @@ void findURL() {
         while (start != string::npos) {
             start = content.find("<a href=", start);
             if (start != string::npos) {
-                start = content.find("://", start);
-                size_t len = content.find('>', start) - start - 4;
-                URL = content.substr(start + 3, len);
+                start = content.find("://", start) + 3;
+                size_t len = content.find('>', start) - start - 1;
+                URL = content.substr(start, len);
                 start += len;
 
                 Lock.lock();
