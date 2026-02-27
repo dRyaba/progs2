@@ -7,17 +7,14 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
-#include <set>
-#include <ctime>
+#include <vector>
 #include <algorithm>
 
-#define ThreadsNumber 1
 using namespace std;
 
 mutex storageMutex;
 condition_variable storageMutexCondVar;
-string globalOutput = R"(output\)", globalInput;
-
+string globalOutput = "output/", globalInput;
 vector<string> UniqueStorage;
 queue<string> URLqueue;
 atomic<bool> flag;
@@ -26,8 +23,8 @@ int uniq = 0;
 void findURL() {
     while (true) {
         unique_lock<mutex> Lock(storageMutex);
-        storageMutexCondVar.wait(Lock, []() -> bool { return !URLqueue.empty() || flag.load(); });
-        if (URLqueue.empty() && flag.load()) // новое условие
+        storageMutexCondVar.wait(Lock, []() { return !URLqueue.empty() || flag.load(); });
+        if (URLqueue.empty() && flag.load())
             break;
         string URL = URLqueue.front();
         uniq++;
@@ -42,13 +39,13 @@ void findURL() {
         while (start != string::npos) {
             start = content.find("<a href=", start);
             if (start != string::npos) {
-                start = content.find("://", start);
-                size_t len = content.find('>', start) - start - 4;
-                URL = content.substr(start + 3, len);
+                start = content.find("://", start) + 3;
+                size_t len = content.find('>', start) - start - 1;
+                URL = content.substr(start, len);
                 start += len;
 
                 Lock.lock();
-                if (::std::find(UniqueStorage.begin(), UniqueStorage.end(), URL) == UniqueStorage.end()) {
+                if (find(UniqueStorage.begin(), UniqueStorage.end(), URL) == UniqueStorage.end()) {
                     UniqueStorage.push_back(URL);
                     Lock.unlock();
 
@@ -75,11 +72,11 @@ void findURL() {
 }
 
 int main() {
-    clock_t start_time = clock();
+    int threadsNumber;
     string st_adr, workString;
     ifstream in("input.txt");
-    in >> globalInput;
-    in >> st_adr;
+    in >> globalInput >> st_adr >> threadsNumber;
+    in.close();
 
     ifstream fin(globalInput + st_adr);
     getline(fin, workString);
@@ -92,40 +89,35 @@ int main() {
     UniqueStorage.push_back(st_adr);
     flag.store(false);
     vector<thread> Threads;
-    Threads.reserve(ThreadsNumber);
+    Threads.reserve(threadsNumber);
     URLqueue.push(st_adr);
-    for (int i = 0; i < ThreadsNumber; i++)
-        Threads.emplace_back(thread(findURL));
+
+    auto start_time = chrono::steady_clock::now();
+
+    for (int i = 0; i < threadsNumber; i++)
+        Threads.emplace_back(findURL);
     storageMutexCondVar.notify_one();
-    while (true) { // новое условие
-        storageMutex.lock();
+
+    while (true) {
+        unique_lock<mutex> Lock(storageMutex);
         if (!URLqueue.empty()) {
-            storageMutex.unlock();
+            Lock.unlock();
             break;
-        } else {
-            storageMutex.unlock();
-            this_thread::sleep_for(chrono::milliseconds(1));
         }
+        Lock.unlock();
+        this_thread::sleep_for(chrono::milliseconds(1));
     }
 
     flag.store(true);
-    for (int i = 0; i < ThreadsNumber; i++)
+    for (int i = 0; i < threadsNumber; i++)
         storageMutexCondVar.notify_one();
 
-    for (int i = 0; i < ThreadsNumber; i++)
+    for (int i = 0; i < threadsNumber; i++)
         Threads[i].join();
 
-    clock_t end_time = clock();
-    string comment;
-    if (uniq == 500)// number may vary
-        comment = "Successfully ended. ";
-    else
-        comment = "Unsuccessfully ended. ";
-    cout << comment << "time spent: " << (end_time - start_time) / 1000.0000 << " seconds. uniq: " << uniq;
-//    to save results of running program with different amount of threads
-    ofstream resout("Results.txt", ofstream::app);
-    resout << "Threads: " << ThreadsNumber << " time spent: " << (end_time - start_time) / 1000.00
-           << " seconds. uniq elements: "
-           << uniq << endl;
-    resout.close();
+    auto end_time = chrono::steady_clock::now();
+    auto elapsed = chrono::duration<double>(end_time - start_time).count();
+
+    cout << uniq << " " << elapsed;
+    return 0;
 }

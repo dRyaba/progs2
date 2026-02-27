@@ -1,0 +1,35 @@
+# CMake
+build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Compilation
+*.exe
+*.o
+*.obj
+*.out
+*.a
+*.so
+*.dll
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln
+*.vcxproj*
+*.vcxproj.filters
+cmake-build-*/
+
+# Crawler output
+output/
+Results.txt
+
+# Misc
+*.log
+*.swp
+*~
